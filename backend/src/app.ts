@@ -5,6 +5,7 @@ import { cultivarRoutes } from './routes/cultivars.js';
 import { descriptorRoutes } from './routes/descriptors.js';
 import { materialRoutes } from './routes/materials.js';
 import { lotRoutes } from './routes/lots.js';
+import { varietalValueRoutes } from './routes/varietalValues.js';
 
 export function buildApp(options: { logger?: boolean } = {}) {
   const app = Fastify({ logger: options.logger ?? true });
@@ -22,6 +23,7 @@ export function buildApp(options: { logger?: boolean } = {}) {
   app.register(cropRoutes, { prefix: '/api/crops' });
   app.register(cultivarRoutes, { prefix: '/api/cultivars' });
   app.register(descriptorRoutes, { prefix: '/api/descriptors' });
+  app.register(varietalValueRoutes, { prefix: '/api/varietal-values' });
   app.register(materialRoutes, { prefix: '/api/materials' });
   app.register(lotRoutes, { prefix: '/api/lots' });
 
