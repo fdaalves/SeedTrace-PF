@@ -13,11 +13,7 @@ export type Cultivar = {
   breeder?: string | null;
   cultivar_type?: string | null;
   notes?: string | null;
-  crops?: {
-    code: string;
-    common_name: string;
-    scientific_name?: string | null;
-  } | null;
+  crops?: { code: string; common_name: string; scientific_name?: string | null } | null;
 };
 
 export type Descriptor = {
@@ -29,11 +25,8 @@ export type Descriptor = {
   unit?: string | null;
   phenological_stage?: string | null;
   criticality?: string | null;
-  allowed_values?: unknown;
-  crops?: {
-    code: string;
-    common_name: string;
-  } | null;
+  allowed_values?: string[] | null;
+  crops?: { code: string; common_name: string } | null;
 };
 
 export type VarietalValue = {
@@ -45,4 +38,29 @@ export type VarietalValue = {
   min_value?: number | null;
   max_value?: number | null;
   notes?: string | null;
+};
+
+export type GeneticMaterial = {
+  id: string;
+  code: string;
+  cultivar_id?: string | null;
+  material_category?: string | null;
+  origin?: string | null;
+  received_at?: string | null;
+  responsible_name?: string | null;
+  notes?: string | null;
+  cultivars?: { code: string; name: string } | null;
+};
+
+export type SeedLot = {
+  id: string;
+  code: string;
+  genetic_material_id: string;
+  parent_lot_id?: string | null;
+  season?: string | null;
+  quantity?: number | null;
+  unit?: string | null;
+  status?: string | null;
+  genetic_materials?: { code: string; material_category?: string | null } | null;
+  parent?: { code: string } | null;
 };
