@@ -1,4 +1,4 @@
-import type { Crop, Cultivar, Descriptor } from './types';
+import type { Crop, Cultivar, Descriptor, VarietalValue } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333';
 
@@ -22,5 +22,8 @@ export const api = {
     request<Cultivar>('/api/cultivars', { method: 'POST', body: JSON.stringify(payload) }),
   listDescriptors: () => request<Descriptor[]>('/api/descriptors'),
   createDescriptor: (payload: Omit<Descriptor, 'id' | 'crops'>) =>
-    request<Descriptor>('/api/descriptors', { method: 'POST', body: JSON.stringify(payload) })
+    request<Descriptor>('/api/descriptors', { method: 'POST', body: JSON.stringify(payload) }),
+  listVarietalValues: () => request<VarietalValue[]>('/api/varietal-values'),
+  setVarietalValue: (payload: Omit<VarietalValue, 'id'>) =>
+    request<VarietalValue>('/api/varietal-values', { method: 'POST', body: JSON.stringify(payload) })
 };
