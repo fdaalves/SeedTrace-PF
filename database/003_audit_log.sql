@@ -20,7 +20,6 @@ create index if not exists idx_audit_logs_actor on public.audit_logs(actor_user_
 
 alter table public.audit_logs enable row level security;
 
--- Direct authenticated reads are limited to administrators and managers.
 drop policy if exists "Admin and manager can read audit logs" on public.audit_logs;
 create policy "Admin and manager can read audit logs"
 on public.audit_logs
@@ -50,6 +49,29 @@ alter table public.genetic_materials add column if not exists updated_by uuid re
 alter table public.seed_lots add column if not exists created_by uuid references auth.users(id) on delete set null;
 alter table public.seed_lots add column if not exists updated_by uuid references auth.users(id) on delete set null;
 alter table public.user_profiles add column if not exists updated_by uuid references auth.users(id) on delete set null;
+
+-- Auth-driven profile synchronization is a system event and must not inherit a prior administrator as actor.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.user_profiles (id, email, full_name, updated_by)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name'),
+    null
+  )
+  on conflict (id) do update
+    set email = excluded.email,
+        full_name = coalesce(excluded.full_name, public.user_profiles.full_name),
+        updated_at = now(),
+        updated_by = null;
+  return new;
+end;
+$$;
 
 create or replace function public.seedtrace_audit_row_change()
 returns trigger
@@ -84,14 +106,13 @@ begin
   );
 
   if TG_OP = 'UPDATE' then
-    select array_agg(key order by key)
+    select array_agg(k.key order by k.key)
       into changed
-    from (
-      select key
-      from jsonb_object_keys(coalesce(old_json, '{}'::jsonb) || coalesce(new_json, '{}'::jsonb)) as key
-      where old_json -> key is distinct from new_json -> key
-        and key not in ('updated_at', 'updated_by')
-    ) q;
+    from jsonb_object_keys(
+      coalesce(old_json, '{}'::jsonb) || coalesce(new_json, '{}'::jsonb)
+    ) as k(key)
+    where old_json -> k.key is distinct from new_json -> k.key
+      and k.key not in ('updated_at', 'updated_by');
   end if;
 
   insert into public.audit_logs (
