@@ -21,11 +21,12 @@ Escopo concluído:
 - [x] autenticação de usuários com Supabase Auth;
 - [x] perfis e autorização de leitura/escrita no backend;
 - [x] modo consulta no frontend;
+- [x] gestão administrativa de usuários, papéis e status pela interface;
+- [x] proteção contra auto-desativação e ausência de administrador ativo;
 - [x] CI separado para backend e frontend;
 - [x] teste de saúde da API.
 
 Hardening antes de encerrar a Build 001:
-- [ ] gestão administrativa de usuários e papéis pela interface;
 - [ ] validação avançada dos dados;
 - [ ] trilha de auditoria;
 - [ ] testes dos endpoints de domínio e autorização;
