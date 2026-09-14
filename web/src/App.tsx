@@ -2,8 +2,9 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api } from './api';
 import type { Crop, Cultivar, Descriptor } from './types';
 import { VarietalValuesPanel } from './VarietalValuesPanel';
+import { LotsPanel, MaterialsPanel } from './TraceabilityPanels';
 
-type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors';
+type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots';
 
 export default function App() {
   const [view, setView] = useState<View>('dashboard');
@@ -27,7 +28,6 @@ export default function App() {
   }
 
   useEffect(() => { void reload(); }, []);
-
   const activeCultivars = useMemo(() => cultivars.length, [cultivars]);
 
   return (
@@ -39,6 +39,8 @@ export default function App() {
           <button className={view === 'crops' ? 'active' : ''} onClick={() => setView('crops')}>Culturas</button>
           <button className={view === 'cultivars' ? 'active' : ''} onClick={() => setView('cultivars')}>Cultivares</button>
           <button className={view === 'descriptors' ? 'active' : ''} onClick={() => setView('descriptors')}>Ficha varietal</button>
+          <button className={view === 'materials' ? 'active' : ''} onClick={() => setView('materials')}>Materiais genéticos</button>
+          <button className={view === 'lots' ? 'active' : ''} onClick={() => setView('lots')}>Lotes</button>
         </nav>
         <div className="sidebar-foot">Build 001 · 0.1.0-alpha</div>
       </aside>
@@ -49,19 +51,21 @@ export default function App() {
 
         {view === 'dashboard' && (
           <section>
-            <div className="hero"><div><p className="eyebrow">BUILD 001</p><h2>Identidade varietal antes da escala.</h2><p>Cadastre a cultura, a cultivar e os descritores que definem o padrão esperado. Essa base será usada nas inspeções de campo e no controle de off-types.</p></div><div className="hero-tag">PF</div></div>
+            <div className="hero"><div><p className="eyebrow">BUILD 001</p><h2>Identidade varietal antes da escala.</h2><p>Cadastre cultura, cultivar, padrão varietal, material genético e lote. Essa cadeia será a referência para inspeções, off-types e rastreabilidade nas próximas builds.</p></div><div className="hero-tag">PF</div></div>
             <div className="stats">
               <Card label="Culturas" value={crops.length} note="cadastros ativos" />
               <Card label="Cultivares" value={activeCultivars} note="identidades varietais" />
               <Card label="Descritores" value={descriptors.length} note="características monitoradas" />
             </div>
-            <div className="panel"><h3>Fluxo do núcleo</h3><div className="flow"><span>Cultura</span><b>→</b><span>Cultivar</span><b>→</b><span>Descritores</span><b>→</b><span>Material</span><b>→</b><span>Lote</span></div></div>
+            <div className="panel"><h3>Fluxo do núcleo</h3><div className="flow"><span>Cultura</span><b>→</b><span>Cultivar</span><b>→</b><span>Padrão varietal</span><b>→</b><span>Material</span><b>→</b><span>Lote</span></div></div>
           </section>
         )}
 
         {view === 'crops' && <Crops crops={crops} onSaved={reload} />}
         {view === 'cultivars' && <Cultivars crops={crops} cultivars={cultivars} onSaved={reload} />}
         {view === 'descriptors' && <Descriptors crops={crops} cultivars={cultivars} descriptors={descriptors} onSaved={reload} />}
+        {view === 'materials' && <MaterialsPanel cultivars={cultivars} />}
+        {view === 'lots' && <LotsPanel />}
       </main>
     </div>
   );
@@ -92,10 +96,21 @@ function Cultivars({ crops, cultivars, onSaved }: { crops: Crop[]; cultivars: Cu
 function Descriptors({ crops, cultivars, descriptors, onSaved }: { crops: Crop[]; cultivars: Cultivar[]; descriptors: Descriptor[]; onSaved: () => Promise<void> }) {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault(); const f = new FormData(e.currentTarget);
-    await api.createDescriptor({ crop_id: String(f.get('crop_id')), code: String(f.get('code')), name: String(f.get('name')), data_type: String(f.get('data_type')), phenological_stage: String(f.get('phenological_stage') || ''), criticality: String(f.get('criticality') || '') });
+    const rawOptions = String(f.get('allowed_values') || '');
+    const allowedValues = rawOptions.split(',').map(value => value.trim()).filter(Boolean);
+    await api.createDescriptor({
+      crop_id: String(f.get('crop_id')),
+      code: String(f.get('code')),
+      name: String(f.get('name')),
+      data_type: String(f.get('data_type')),
+      unit: String(f.get('unit') || ''),
+      phenological_stage: String(f.get('phenological_stage') || ''),
+      criticality: String(f.get('criticality') || ''),
+      allowed_values: allowedValues.length ? allowedValues : null
+    });
     e.currentTarget.reset(); await onSaved();
   }
-  return <section><div className="grid"><form className="panel form" onSubmit={submit}><h3>Novo descritor</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="flower_color" /></label><label>Característica<input name="name" required placeholder="Cor da flor" /></label><label>Tipo<select name="data_type" required><option value="option">Lista</option><option value="text">Texto</option><option value="decimal">Número</option><option value="range">Faixa</option></select></label><label>Estágio fenológico<input name="phenological_stage" placeholder="R1-R2" /></label><label>Criticidade<select name="criticality"><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option><option value="low">Baixa</option></select></label><button className="primary">Cadastrar descritor</button></form><List title="Ficha de descritores" rows={descriptors.map(d => [d.name, d.phenological_stage || '—', d.criticality || '—'])} /></div><VarietalValuesPanel cultivars={cultivars} descriptors={descriptors} /></section>;
+  return <section><div className="grid"><form className="panel form" onSubmit={submit}><h3>Novo descritor</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="flower_color" /></label><label>Característica<input name="name" required placeholder="Cor da flor" /></label><label>Tipo<select name="data_type" required><option value="option">Lista controlada</option><option value="text">Texto</option><option value="decimal">Número</option><option value="range">Faixa</option></select></label><label>Opções da lista<input name="allowed_values" placeholder="Branca, Roxa" /></label><label>Unidade<input name="unit" placeholder="cm, dias, %, etc." /></label><label>Estágio fenológico<input name="phenological_stage" placeholder="R1-R2" /></label><label>Criticidade<select name="criticality"><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option><option value="low">Baixa</option></select></label><button className="primary">Cadastrar descritor</button></form><List title="Ficha de descritores" rows={descriptors.map(d => [d.name, d.phenological_stage || '—', Array.isArray(d.allowed_values) ? d.allowed_values.join(' / ') : d.criticality || '—'])} /></div><VarietalValuesPanel cultivars={cultivars} descriptors={descriptors} /></section>;
 }
 
 function List({ title, rows }: { title: string; rows: string[][] }) {
@@ -103,5 +118,5 @@ function List({ title, rows }: { title: string; rows: string[][] }) {
 }
 
 function title(view: View) {
-  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal' }[view];
+  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia' }[view];
 }
