@@ -29,9 +29,10 @@ export async function materialRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'code is required' });
     }
 
+    const actorId = request.authUser!.id;
     const { data, error } = await supabase
       .from('genetic_materials')
-      .insert(body)
+      .insert({ ...body, created_by: actorId, updated_by: actorId })
       .select()
       .single();
 
