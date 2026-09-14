@@ -12,7 +12,9 @@ const entityOptions = [
   ['genetic_materials', 'Materiais genéticos'],
   ['seed_lots', 'Lotes'],
   ['user_profiles', 'Usuários']
-];
+] as const;
+
+const entityLabels: Record<string, string> = Object.fromEntries(entityOptions);
 
 export function AuditLogPanel() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -102,15 +104,7 @@ function actionLabel(action: AuditLog['action']) {
 }
 
 function entityLabel(entity: string) {
-  return Object.fromEntries(entityOptions).get?.(entity) ?? ({
-    crops: 'Culturas',
-    cultivars: 'Cultivares',
-    descriptor_definitions: 'Descritores',
-    cultivar_descriptor_values: 'Valores varietais',
-    genetic_materials: 'Materiais genéticos',
-    seed_lots: 'Lotes',
-    user_profiles: 'Usuários'
-  } as Record<string, string>)[entity] ?? entity;
+  return entityLabels[entity] ?? entity;
 }
 
 function formatDate(value: string) {
