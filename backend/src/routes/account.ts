@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { adminUserRoutes } from './adminUsers.js';
 
 export async function accountRoutes(app: FastifyInstance) {
   app.get('/me', async (request, reply) => {
@@ -8,4 +9,6 @@ export async function accountRoutes(app: FastifyInstance) {
 
     return request.authUser;
   });
+
+  app.register(adminUserRoutes, { prefix: '/users' });
 }
