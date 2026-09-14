@@ -23,14 +23,31 @@ export async function varietalValueRoutes(app: FastifyInstance) {
   });
 
   app.post<{ Body: Body }>('/', async (request, reply) => {
-    if (!request.body.cultivar_id || !request.body.descriptor_id) {
+    const body = request.body;
+    if (!body.cultivar_id || !body.descriptor_id) {
       return reply.code(400).send({ error: 'cultivar_id and descriptor_id are required' });
     }
-    const { data, error } = await supabase
+
+    const actorId = request.authUser!.id;
+    const { data: existing, error: lookupError } = await supabase
       .from('cultivar_descriptor_values')
-      .upsert(request.body, { onConflict: 'cultivar_id,descriptor_id' })
-      .select()
-      .single();
+      .select('id')
+      .eq('cultivar_id', body.cultivar_id)
+      .eq('descriptor_id', body.descriptor_id)
+      .maybeSingle();
+
+    if (lookupError) return reply.code(400).send({ error: lookupError.message });
+
+    const mutation = existing
+      ? supabase
+          .from('cultivar_descriptor_values')
+          .update({ ...body, updated_by: actorId })
+          .eq('id', existing.id)
+      : supabase
+          .from('cultivar_descriptor_values')
+          .insert({ ...body, created_by: actorId, updated_by: actorId });
+
+    const { data, error } = await mutation.select().single();
     if (error) return reply.code(400).send({ error: error.message });
     return data;
   });
