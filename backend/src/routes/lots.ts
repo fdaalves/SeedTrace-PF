@@ -29,9 +29,10 @@ export async function lotRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'code and genetic_material_id are required' });
     }
 
+    const actorId = request.authUser!.id;
     const { data, error } = await supabase
       .from('seed_lots')
-      .insert(body)
+      .insert({ ...body, created_by: actorId, updated_by: actorId })
       .select()
       .single();
 
