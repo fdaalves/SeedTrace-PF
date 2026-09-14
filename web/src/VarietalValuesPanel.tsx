@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { api } from './api';
 import type { Cultivar, Descriptor, VarietalValue } from './types';
+import './varietal.css';
 
 export function VarietalValuesPanel({ cultivars, descriptors }: { cultivars: Cultivar[]; descriptors: Descriptor[] }) {
   const [values, setValues] = useState<VarietalValue[]>([]);
