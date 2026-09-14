@@ -23,12 +23,16 @@ Escopo concluído:
 - [x] modo consulta no frontend;
 - [x] gestão administrativa de usuários, papéis e status pela interface;
 - [x] proteção contra auto-desativação e ausência de administrador ativo;
+- [x] trilha de auditoria imutável no banco;
+- [x] autoria de criação e alteração por usuário autenticado;
+- [x] histórico antes/depois e campos alterados;
+- [x] consulta de auditoria para Administrador e Gestor;
+- [x] filtros de auditoria por entidade e ação;
 - [x] CI separado para backend e frontend;
 - [x] teste de saúde da API.
 
 Hardening antes de encerrar a Build 001:
 - [ ] validação avançada dos dados;
-- [ ] trilha de auditoria;
 - [ ] testes dos endpoints de domínio e autorização;
 - [ ] edição e inativação de cadastros.
 
