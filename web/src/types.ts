@@ -13,6 +13,19 @@ export type ManagedUser = UserProfile & {
   updated_at?: string;
 };
 
+export type AuditLog = {
+  id: string;
+  occurred_at: string;
+  actor_user_id?: string | null;
+  actor_email?: string | null;
+  entity_type: string;
+  entity_id?: string | null;
+  action: 'insert' | 'update' | 'delete';
+  changed_fields?: string[] | null;
+  before_data?: Record<string, unknown> | null;
+  after_data?: Record<string, unknown> | null;
+};
+
 export type Crop = {
   id: string;
   code: string;
