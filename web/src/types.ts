@@ -1,3 +1,13 @@
+export type AppRole = 'admin' | 'manager' | 'technician' | 'field_operator' | 'viewer';
+
+export type UserProfile = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  role: AppRole;
+  is_active: boolean;
+};
+
 export type Crop = {
   id: string;
   code: string;
