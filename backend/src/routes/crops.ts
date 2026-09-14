@@ -25,9 +25,10 @@ export async function cropRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'code and common_name are required' });
     }
 
+    const actorId = request.authUser!.id;
     const { data, error } = await supabase
       .from('crops')
-      .insert({ code, common_name, scientific_name })
+      .insert({ code, common_name, scientific_name, created_by: actorId, updated_by: actorId })
       .select()
       .single();
 
