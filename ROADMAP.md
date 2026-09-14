@@ -28,11 +28,15 @@ Escopo concluído:
 - [x] histórico antes/depois e campos alterados;
 - [x] consulta de auditoria para Administrador e Gestor;
 - [x] filtros de auditoria por entidade e ação;
+- [x] validação avançada de códigos e referências;
+- [x] compatibilidade entre descritor e valor varietal;
+- [x] proteção de genealogia de lotes e quantidades;
+- [x] constraints e triggers de validação no PostgreSQL;
+- [x] testes unitários das regras puras de validação;
 - [x] CI separado para backend e frontend;
 - [x] teste de saúde da API.
 
 Hardening antes de encerrar a Build 001:
-- [ ] validação avançada dos dados;
 - [ ] testes dos endpoints de domínio e autorização;
 - [ ] edição e inativação de cadastros.
 
