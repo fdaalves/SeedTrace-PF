@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { adminUserRoutes } from './adminUsers.js';
+import { auditRoutes } from './audit.js';
 
 export async function accountRoutes(app: FastifyInstance) {
   app.get('/me', async (request, reply) => {
@@ -11,4 +12,5 @@ export async function accountRoutes(app: FastifyInstance) {
   });
 
   app.register(adminUserRoutes, { prefix: '/users' });
+  app.register(auditRoutes, { prefix: '/audit' });
 }
