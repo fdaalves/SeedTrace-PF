@@ -18,15 +18,17 @@ Escopo concluído:
 - [x] telas de Culturas e Cultivares;
 - [x] Ficha de Identidade Varietal;
 - [x] telas de Materiais Genéticos e Lotes;
+- [x] autenticação de usuários com Supabase Auth;
+- [x] perfis e autorização de leitura/escrita no backend;
+- [x] modo consulta no frontend;
 - [x] CI separado para backend e frontend;
 - [x] teste de saúde da API.
 
 Hardening antes de encerrar a Build 001:
-- [ ] autenticação de usuários;
-- [ ] perfis e permissões;
+- [ ] gestão administrativa de usuários e papéis pela interface;
 - [ ] validação avançada dos dados;
 - [ ] trilha de auditoria;
-- [ ] testes dos endpoints de domínio;
+- [ ] testes dos endpoints de domínio e autorização;
 - [ ] edição e inativação de cadastros.
 
 ## Build 002 — Field Structure
