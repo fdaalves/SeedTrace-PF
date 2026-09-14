@@ -1,4 +1,4 @@
-import type { Crop, Cultivar, Descriptor, VarietalValue } from './types';
+import type { Crop, Cultivar, Descriptor, GeneticMaterial, SeedLot, VarietalValue } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333';
 
@@ -15,15 +15,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   listCrops: () => request<Crop[]>('/api/crops'),
-  createCrop: (payload: Pick<Crop, 'code' | 'common_name' | 'scientific_name'>) =>
-    request<Crop>('/api/crops', { method: 'POST', body: JSON.stringify(payload) }),
+  createCrop: (payload: Pick<Crop, 'code' | 'common_name' | 'scientific_name'>) => request<Crop>('/api/crops', { method: 'POST', body: JSON.stringify(payload) }),
   listCultivars: () => request<Cultivar[]>('/api/cultivars'),
-  createCultivar: (payload: Omit<Cultivar, 'id' | 'crops'>) =>
-    request<Cultivar>('/api/cultivars', { method: 'POST', body: JSON.stringify(payload) }),
+  createCultivar: (payload: Omit<Cultivar, 'id' | 'crops'>) => request<Cultivar>('/api/cultivars', { method: 'POST', body: JSON.stringify(payload) }),
   listDescriptors: () => request<Descriptor[]>('/api/descriptors'),
-  createDescriptor: (payload: Omit<Descriptor, 'id' | 'crops'>) =>
-    request<Descriptor>('/api/descriptors', { method: 'POST', body: JSON.stringify(payload) }),
+  createDescriptor: (payload: Omit<Descriptor, 'id' | 'crops'>) => request<Descriptor>('/api/descriptors', { method: 'POST', body: JSON.stringify(payload) }),
   listVarietalValues: () => request<VarietalValue[]>('/api/varietal-values'),
-  setVarietalValue: (payload: Omit<VarietalValue, 'id'>) =>
-    request<VarietalValue>('/api/varietal-values', { method: 'POST', body: JSON.stringify(payload) })
+  setVarietalValue: (payload: Omit<VarietalValue, 'id'>) => request<VarietalValue>('/api/varietal-values', { method: 'POST', body: JSON.stringify(payload) }),
+  listMaterials: () => request<GeneticMaterial[]>('/api/materials'),
+  createMaterial: (payload: Omit<GeneticMaterial, 'id' | 'cultivars'>) => request<GeneticMaterial>('/api/materials', { method: 'POST', body: JSON.stringify(payload) }),
+  listLots: () => request<SeedLot[]>('/api/lots'),
+  createLot: (payload: Omit<SeedLot, 'id' | 'genetic_materials' | 'parent'>) => request<SeedLot>('/api/lots', { method: 'POST', body: JSON.stringify(payload) })
 };
