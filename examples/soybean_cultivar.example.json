@@ -1,0 +1,19 @@
+{
+  "crop": {
+    "code": "SOY",
+    "common_name": "Soja",
+    "scientific_name": "Glycine max"
+  },
+  "cultivar": {
+    "code": "SOY-PF-001",
+    "name": "Cultivar Demonstracao",
+    "breeder": "Exemplo"
+  },
+  "descriptors": [
+    {"code": "flower_color", "name": "Cor da flor", "value": "Roxa", "stage": "R1-R2", "criticality": "high"},
+    {"code": "pubescence_color", "name": "Cor da pubescencia", "value": "Cinza", "stage": "Reprodutivo", "criticality": "high"},
+    {"code": "growth_habit", "name": "Habito de crescimento", "value": "Indeterminado", "stage": "Safra", "criticality": "high"},
+    {"code": "hilum_color", "name": "Cor do hilo", "value": "Marrom claro", "stage": "Pos-colheita", "criticality": "high"},
+    {"code": "maturity_group", "name": "Grupo de maturidade", "value": 6.2, "stage": "Cadastro", "criticality": "medium"}
+  ]
+}
