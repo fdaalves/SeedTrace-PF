@@ -69,7 +69,10 @@ export const adminUserRoutes: FastifyPluginAsync = async (app) => {
       }
     }
 
-    const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    const update: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+      updated_by: request.authUser!.id
+    };
     if (body.role !== undefined) update.role = body.role;
     if (body.is_active !== undefined) update.is_active = body.is_active;
     if (body.full_name !== undefined) update.full_name = body.full_name?.trim() || null;
