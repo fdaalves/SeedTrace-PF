@@ -28,9 +28,10 @@ export async function cultivarRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'crop_id, code and name are required' });
     }
 
+    const actorId = request.authUser!.id;
     const { data, error } = await supabase
       .from('cultivars')
-      .insert(body)
+      .insert({ ...body, created_by: actorId, updated_by: actorId })
       .select()
       .single();
 
