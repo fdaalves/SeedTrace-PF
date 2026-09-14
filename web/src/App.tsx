@@ -3,8 +3,9 @@ import { api } from './api';
 import type { Crop, Cultivar, Descriptor, UserProfile } from './types';
 import { VarietalValuesPanel } from './VarietalValuesPanel';
 import { LotsPanel, MaterialsPanel } from './TraceabilityPanels';
+import { UserManagementPanel } from './UserManagementPanel';
 
-type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots';
+type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots' | 'users';
 
 type AppProps = {
   profile: UserProfile;
@@ -18,6 +19,7 @@ export default function App({ profile, onLogout }: AppProps) {
   const [descriptors, setDescriptors] = useState<Descriptor[]>([]);
   const [error, setError] = useState('');
   const canWrite = ['admin', 'manager', 'technician'].includes(profile.role);
+  const isAdmin = profile.role === 'admin';
 
   async function reload() {
     try {
@@ -47,6 +49,7 @@ export default function App({ profile, onLogout }: AppProps) {
           <button className={view === 'descriptors' ? 'active' : ''} onClick={() => setView('descriptors')}>Ficha varietal</button>
           <button className={view === 'materials' ? 'active' : ''} onClick={() => setView('materials')}>Materiais genéticos</button>
           <button className={view === 'lots' ? 'active' : ''} onClick={() => setView('lots')}>Lotes</button>
+          {isAdmin && <button className={view === 'users' ? 'active' : ''} onClick={() => setView('users')}>Usuários</button>}
         </nav>
         <div className="sidebar-foot">Build 001 · 0.1.0-alpha<br />{profile.email}</div>
       </aside>
@@ -79,6 +82,7 @@ export default function App({ profile, onLogout }: AppProps) {
         {view === 'descriptors' && <Descriptors crops={crops} cultivars={cultivars} descriptors={descriptors} onSaved={reload} />}
         {view === 'materials' && <MaterialsPanel cultivars={cultivars} />}
         {view === 'lots' && <LotsPanel />}
+        {view === 'users' && isAdmin && <UserManagementPanel currentUserId={profile.id} />}
       </main>
     </div>
   );
@@ -131,7 +135,7 @@ function List({ title, rows }: { title: string; rows: string[][] }) {
 }
 
 function title(view: View) {
-  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia' }[view];
+  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia', users: 'Usuários e permissões' }[view];
 }
 
 function roleLabel(role: UserProfile['role']) {
