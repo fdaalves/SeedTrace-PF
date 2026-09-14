@@ -35,3 +35,14 @@ export type Descriptor = {
     common_name: string;
   } | null;
 };
+
+export type VarietalValue = {
+  id: string;
+  cultivar_id: string;
+  descriptor_id: string;
+  value_text?: string | null;
+  value_number?: number | null;
+  min_value?: number | null;
+  max_value?: number | null;
+  notes?: string | null;
+};
