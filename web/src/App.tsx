@@ -4,8 +4,9 @@ import type { Crop, Cultivar, Descriptor, UserProfile } from './types';
 import { VarietalValuesPanel } from './VarietalValuesPanel';
 import { LotsPanel, MaterialsPanel } from './TraceabilityPanels';
 import { UserManagementPanel } from './UserManagementPanel';
+import { AuditLogPanel } from './AuditLogPanel';
 
-type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots' | 'users';
+type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots' | 'users' | 'audit';
 
 type AppProps = {
   profile: UserProfile;
@@ -20,6 +21,7 @@ export default function App({ profile, onLogout }: AppProps) {
   const [error, setError] = useState('');
   const canWrite = ['admin', 'manager', 'technician'].includes(profile.role);
   const isAdmin = profile.role === 'admin';
+  const canViewAudit = ['admin', 'manager'].includes(profile.role);
 
   async function reload() {
     try {
@@ -49,6 +51,7 @@ export default function App({ profile, onLogout }: AppProps) {
           <button className={view === 'descriptors' ? 'active' : ''} onClick={() => setView('descriptors')}>Ficha varietal</button>
           <button className={view === 'materials' ? 'active' : ''} onClick={() => setView('materials')}>Materiais genéticos</button>
           <button className={view === 'lots' ? 'active' : ''} onClick={() => setView('lots')}>Lotes</button>
+          {canViewAudit && <button className={view === 'audit' ? 'active' : ''} onClick={() => setView('audit')}>Auditoria</button>}
           {isAdmin && <button className={view === 'users' ? 'active' : ''} onClick={() => setView('users')}>Usuários</button>}
         </nav>
         <div className="sidebar-foot">Build 001 · 0.1.0-alpha<br />{profile.email}</div>
@@ -82,6 +85,7 @@ export default function App({ profile, onLogout }: AppProps) {
         {view === 'descriptors' && <Descriptors crops={crops} cultivars={cultivars} descriptors={descriptors} onSaved={reload} />}
         {view === 'materials' && <MaterialsPanel cultivars={cultivars} />}
         {view === 'lots' && <LotsPanel />}
+        {view === 'audit' && canViewAudit && <AuditLogPanel />}
         {view === 'users' && isAdmin && <UserManagementPanel currentUserId={profile.id} />}
       </main>
     </div>
@@ -135,7 +139,7 @@ function List({ title, rows }: { title: string; rows: string[][] }) {
 }
 
 function title(view: View) {
-  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia', users: 'Usuários e permissões' }[view];
+  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia', users: 'Usuários e permissões', audit: 'Trilha de auditoria' }[view];
 }
 
 function roleLabel(role: UserProfile['role']) {
