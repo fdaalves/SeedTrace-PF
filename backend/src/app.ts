@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import { cropRoutes } from './routes/crops.js';
 import { cultivarRoutes } from './routes/cultivars.js';
 import { descriptorRoutes } from './routes/descriptors.js';
@@ -7,6 +8,10 @@ import { lotRoutes } from './routes/lots.js';
 
 export function buildApp(options: { logger?: boolean } = {}) {
   const app = Fastify({ logger: options.logger ?? true });
+
+  app.register(cors, {
+    origin: process.env.CORS_ORIGIN?.split(',').map((value) => value.trim()) ?? true
+  });
 
   app.get('/health', async () => ({
     status: 'ok',
