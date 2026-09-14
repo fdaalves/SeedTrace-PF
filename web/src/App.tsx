@@ -1,17 +1,23 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api } from './api';
-import type { Crop, Cultivar, Descriptor } from './types';
+import type { Crop, Cultivar, Descriptor, UserProfile } from './types';
 import { VarietalValuesPanel } from './VarietalValuesPanel';
 import { LotsPanel, MaterialsPanel } from './TraceabilityPanels';
 
 type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots';
 
-export default function App() {
+type AppProps = {
+  profile: UserProfile;
+  onLogout: () => Promise<void>;
+};
+
+export default function App({ profile, onLogout }: AppProps) {
   const [view, setView] = useState<View>('dashboard');
   const [crops, setCrops] = useState<Crop[]>([]);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
   const [descriptors, setDescriptors] = useState<Descriptor[]>([]);
   const [error, setError] = useState('');
+  const canWrite = ['admin', 'manager', 'technician'].includes(profile.role);
 
   async function reload() {
     try {
@@ -42,12 +48,19 @@ export default function App() {
           <button className={view === 'materials' ? 'active' : ''} onClick={() => setView('materials')}>Materiais genéticos</button>
           <button className={view === 'lots' ? 'active' : ''} onClick={() => setView('lots')}>Lotes</button>
         </nav>
-        <div className="sidebar-foot">Build 001 · 0.1.0-alpha</div>
+        <div className="sidebar-foot">Build 001 · 0.1.0-alpha<br />{profile.email}</div>
       </aside>
 
-      <main className="content">
-        <header><div><p className="eyebrow">GESTÃO GENÉTICA E RASTREABILIDADE</p><h1>{title(view)}</h1></div><span className="status">● Sistema em desenvolvimento</span></header>
+      <main className={`content ${canWrite ? '' : 'readonly'}`}>
+        <header>
+          <div><p className="eyebrow">GESTÃO GENÉTICA E RASTREABILIDADE</p><h1>{title(view)}</h1></div>
+          <div className="user-tools">
+            <div className="user-chip"><strong>{profile.full_name || profile.email || 'Usuário'}</strong><span>{roleLabel(profile.role)}</span></div>
+            <button className="logout-button" onClick={() => void onLogout()}>Sair</button>
+          </div>
+        </header>
         {error && <div className="alert">{error}</div>}
+        {!canWrite && <div className="readonly-note">Seu perfil está em modo consulta. Alterações de cadastros estão bloqueadas pela API.</div>}
 
         {view === 'dashboard' && (
           <section>
@@ -119,4 +132,8 @@ function List({ title, rows }: { title: string; rows: string[][] }) {
 
 function title(view: View) {
   return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia' }[view];
+}
+
+function roleLabel(role: UserProfile['role']) {
+  return { admin: 'Administrador', manager: 'Gestor', technician: 'Técnico', field_operator: 'Operador de campo', viewer: 'Consulta' }[role];
 }
