@@ -8,6 +8,11 @@ export type UserProfile = {
   is_active: boolean;
 };
 
+export type ManagedUser = UserProfile & {
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type Crop = {
   id: string;
   code: string;
