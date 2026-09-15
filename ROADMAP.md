@@ -33,11 +33,13 @@ Escopo concluído:
 - [x] proteção de genealogia de lotes e quantidades;
 - [x] constraints e triggers de validação no PostgreSQL;
 - [x] testes unitários das regras puras de validação;
+- [x] testes dos endpoints de domínio;
+- [x] matriz automatizada de autorização por perfil;
+- [x] testes de 401/403 e permissões administrativas;
 - [x] CI separado para backend e frontend;
 - [x] teste de saúde da API.
 
 Hardening antes de encerrar a Build 001:
-- [ ] testes dos endpoints de domínio e autorização;
 - [ ] edição e inativação de cadastros.
 
 ## Build 002 — Field Structure
