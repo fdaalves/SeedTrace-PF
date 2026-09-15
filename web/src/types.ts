@@ -31,6 +31,7 @@ export type Crop = {
   code: string;
   common_name: string;
   scientific_name?: string | null;
+  is_active?: boolean;
 };
 
 export type Cultivar = {
@@ -41,6 +42,7 @@ export type Cultivar = {
   breeder?: string | null;
   cultivar_type?: string | null;
   notes?: string | null;
+  is_active?: boolean;
   crops?: { code: string; common_name: string; scientific_name?: string | null } | null;
 };
 
@@ -54,6 +56,7 @@ export type Descriptor = {
   phenological_stage?: string | null;
   criticality?: string | null;
   allowed_values?: string[] | null;
+  is_active?: boolean;
   crops?: { code: string; common_name: string } | null;
 };
 
@@ -77,6 +80,7 @@ export type GeneticMaterial = {
   received_at?: string | null;
   responsible_name?: string | null;
   notes?: string | null;
+  is_active?: boolean;
   cultivars?: { code: string; name: string } | null;
 };
 
@@ -89,6 +93,7 @@ export type SeedLot = {
   quantity?: number | null;
   unit?: string | null;
   status?: string | null;
+  is_active?: boolean;
   genetic_materials?: { code: string; material_category?: string | null } | null;
   parent?: { code: string } | null;
 };
