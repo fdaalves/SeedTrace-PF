@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase.js';
 import {
   assertDescriptorDefinition,
   normalizedCode,
+  normalizeOptionList,
   optionalText,
   requiredText,
   validateVarietalValue,
@@ -18,6 +19,16 @@ type CreateDescriptorBody = {
   phenological_stage?: string;
   criticality?: string;
   allowed_values?: unknown;
+};
+
+type UpdateDescriptorBody = {
+  code?: string;
+  name?: string;
+  unit?: string;
+  phenological_stage?: string;
+  criticality?: string;
+  allowed_values?: unknown;
+  is_active?: boolean;
 };
 
 type SetCultivarValueBody = {
@@ -78,6 +89,52 @@ export async function descriptorRoutes(app: FastifyInstance) {
 
       if (error) return reply.code(error.code === '23505' ? 409 : 400).send({ error: error.message });
       return reply.code(201).send(data);
+    } catch (error) {
+      return reply.code(400).send({ error: validationMessage(error) });
+    }
+  });
+
+  app.patch<{ Params: { id: string }; Body: UpdateDescriptorBody }>('/:id', async (request, reply) => {
+    try {
+      const { data: current } = await supabase.from('descriptor_definitions').select('*').eq('id', request.params.id).maybeSingle();
+      if (!current) return reply.code(404).send({ error: 'Descriptor not found' });
+
+      const update: Record<string, unknown> = { updated_by: request.authUser!.id };
+      if (request.body.code !== undefined) update.code = normalizedCode(request.body.code, 'code', 80);
+      if (request.body.name !== undefined) update.name = requiredText(request.body.name, 'name', 160);
+      if (request.body.unit !== undefined) update.unit = optionalText(request.body.unit, 'unit', 40) ?? null;
+      if (request.body.phenological_stage !== undefined) update.phenological_stage = optionalText(request.body.phenological_stage, 'phenological_stage', 80) ?? null;
+      if (request.body.criticality !== undefined) {
+        const criticality = optionalText(request.body.criticality, 'criticality', 20);
+        if (criticality && !['low', 'medium', 'high', 'critical'].includes(criticality)) {
+          return reply.code(400).send({ error: 'criticality must be one of: low, medium, high, critical' });
+        }
+        update.criticality = criticality ?? null;
+      }
+
+      if (request.body.allowed_values !== undefined) {
+        if (current.data_type !== 'option') return reply.code(400).send({ error: 'allowed_values is only valid for option descriptors' });
+        const allowed = normalizeOptionList(request.body.allowed_values);
+        if (!allowed || allowed.length < 2) return reply.code(400).send({ error: 'option descriptors require at least two allowed_values' });
+        const { data: usedValues } = await supabase.from('cultivar_descriptor_values').select('value_text').eq('descriptor_id', current.id);
+        const missing = (usedValues ?? []).map((row) => row.value_text).filter((value): value is string => Boolean(value) && !allowed.includes(value));
+        if (missing.length > 0) return reply.code(409).send({ error: `Cannot remove option values currently in use: ${[...new Set(missing)].join(', ')}` });
+        update.allowed_values = allowed;
+      }
+
+      if (request.body.is_active !== undefined) {
+        if (typeof request.body.is_active !== 'boolean') return reply.code(400).send({ error: 'is_active must be boolean' });
+        update.is_active = request.body.is_active;
+      }
+
+      if (update.code && update.code !== current.code) {
+        const { data: duplicate } = await supabase.from('descriptor_definitions').select('id').eq('crop_id', current.crop_id).eq('code', update.code).neq('id', current.id).maybeSingle();
+        if (duplicate) return reply.code(409).send({ error: `Descriptor code ${String(update.code)} already exists for this crop` });
+      }
+
+      const { data, error } = await supabase.from('descriptor_definitions').update(update).eq('id', current.id).select().single();
+      if (error) return reply.code(error.code === '23505' ? 409 : 400).send({ error: error.message });
+      return data;
     } catch (error) {
       return reply.code(400).send({ error: validationMessage(error) });
     }
