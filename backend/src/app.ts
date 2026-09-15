@@ -1,4 +1,4 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
 import { authenticateRequest, hasRole } from './lib/auth.js';
 import { cropRoutes } from './routes/crops.js';
@@ -9,8 +9,16 @@ import { lotRoutes } from './routes/lots.js';
 import { varietalValueRoutes } from './routes/varietalValues.js';
 import { accountRoutes } from './routes/account.js';
 
-export function buildApp(options: { logger?: boolean } = {}) {
+type Authenticator = (request: FastifyRequest, reply: FastifyReply) => Promise<unknown> | unknown;
+
+type BuildAppOptions = {
+  logger?: boolean;
+  authenticate?: Authenticator;
+};
+
+export function buildApp(options: BuildAppOptions = {}) {
   const app = Fastify({ logger: options.logger ?? true });
+  const authenticate = options.authenticate ?? authenticateRequest;
 
   app.register(cors, {
     origin: process.env.CORS_ORIGIN?.split(',').map((value) => value.trim()) ?? true
@@ -25,7 +33,7 @@ export function buildApp(options: { logger?: boolean } = {}) {
   app.addHook('preHandler', async (request, reply) => {
     if (!request.url.startsWith('/api/')) return;
 
-    await authenticateRequest(request, reply);
+    await authenticate(request, reply);
     if (reply.sent) return;
 
     const isWrite = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method);
