@@ -23,7 +23,8 @@ const requiredPayloadCases = [
   ['/api/descriptors', 'descriptor'],
   ['/api/varietal-values', 'varietal value'],
   ['/api/materials', 'genetic material'],
-  ['/api/lots', 'seed lot']
+  ['/api/lots', 'seed lot'],
+  ['/api/experiments', 'experiment']
 ] as const;
 
 for (const [url, label] of requiredPayloadCases) {
