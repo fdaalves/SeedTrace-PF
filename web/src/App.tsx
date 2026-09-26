@@ -6,8 +6,9 @@ import { LotsPanel, MaterialsPanel } from './TraceabilityPanels';
 import { UserManagementPanel } from './UserManagementPanel';
 import { AuditLogPanel } from './AuditLogPanel';
 import { CatalogMaintenancePanel } from './CatalogMaintenancePanel';
+import { ExperimentsPanel } from './ExperimentsPanel';
 
-type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots' | 'maintenance' | 'users' | 'audit';
+type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots' | 'experiments' | 'maintenance' | 'users' | 'audit';
 
 type AppProps = {
   profile: UserProfile;
@@ -54,11 +55,12 @@ export default function App({ profile, onLogout }: AppProps) {
           <button className={view === 'descriptors' ? 'active' : ''} onClick={() => setView('descriptors')}>Ficha varietal</button>
           <button className={view === 'materials' ? 'active' : ''} onClick={() => setView('materials')}>Materiais genéticos</button>
           <button className={view === 'lots' ? 'active' : ''} onClick={() => setView('lots')}>Lotes</button>
+          <button className={view === 'experiments' ? 'active' : ''} onClick={() => setView('experiments')}>Experimentos</button>
           {canWrite && <button className={view === 'maintenance' ? 'active' : ''} onClick={() => setView('maintenance')}>Manutenção</button>}
           {canViewAudit && <button className={view === 'audit' ? 'active' : ''} onClick={() => setView('audit')}>Auditoria</button>}
           {isAdmin && <button className={view === 'users' ? 'active' : ''} onClick={() => setView('users')}>Usuários</button>}
         </nav>
-        <div className="sidebar-foot">Build 001 · 0.1.0-alpha<br />{profile.email}</div>
+        <div className="sidebar-foot">Build 002 · 0.2.0-alpha<br />{profile.email}</div>
       </aside>
 
       <main className={`content ${canWrite ? '' : 'readonly'}`}>
@@ -74,13 +76,13 @@ export default function App({ profile, onLogout }: AppProps) {
 
         {view === 'dashboard' && (
           <section>
-            <div className="hero"><div><p className="eyebrow">BUILD 001</p><h2>Identidade varietal antes da escala.</h2><p>Cadastre cultura, cultivar, padrão varietal, material genético e lote. Essa cadeia será a referência para inspeções, off-types e rastreabilidade nas próximas builds.</p></div><div className="hero-tag">PF</div></div>
+            <div className="hero"><div><p className="eyebrow">BUILD 002</p><h2>Do material genético à parcela experimental.</h2><p>Cadastre a identidade varietal e a genealogia dos lotes, monte experimentos em blocos e parcelas e registre avaliações de campo mantendo a rastreabilidade da origem.</p></div><div className="hero-tag">PF</div></div>
             <div className="stats">
               <Card label="Culturas" value={activeCrops.length} note="cadastros ativos" />
               <Card label="Cultivares" value={activeCultivarRows.length} note="identidades varietais ativas" />
               <Card label="Descritores" value={activeDescriptors.length} note="características ativas" />
             </div>
-            <div className="panel"><h3>Fluxo do núcleo</h3><div className="flow"><span>Cultura</span><b>→</b><span>Cultivar</span><b>→</b><span>Padrão varietal</span><b>→</b><span>Material</span><b>→</b><span>Lote</span></div></div>
+            <div className="panel"><h3>Fluxo do núcleo</h3><div className="flow"><span>Cultura</span><b>→</b><span>Cultivar</span><b>→</b><span>Material</span><b>→</b><span>Lote</span><b>→</b><span>Experimento</span><b>→</b><span>Parcela</span><b>→</b><span>Avaliação</span></div></div>
           </section>
         )}
 
@@ -89,6 +91,7 @@ export default function App({ profile, onLogout }: AppProps) {
         {view === 'descriptors' && <Descriptors crops={activeCrops} cultivars={activeCultivarRows} descriptors={descriptors} onSaved={reload} />}
         {view === 'materials' && <MaterialsPanel cultivars={activeCultivarRows} />}
         {view === 'lots' && <LotsPanel />}
+        {view === 'experiments' && <ExperimentsPanel crops={activeCrops} descriptors={activeDescriptors} />}
         {view === 'maintenance' && canWrite && <CatalogMaintenancePanel />}
         {view === 'audit' && canViewAudit && <AuditLogPanel />}
         {view === 'users' && isAdmin && <UserManagementPanel currentUserId={profile.id} />}
@@ -144,7 +147,7 @@ function List({ title, rows }: { title: string; rows: string[][] }) {
 }
 
 function title(view: View) {
-  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia', maintenance: 'Manutenção de cadastros', users: 'Usuários e permissões', audit: 'Trilha de auditoria' }[view];
+  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia', experiments: 'Experimentos e parcelas', maintenance: 'Manutenção de cadastros', users: 'Usuários e permissões', audit: 'Trilha de auditoria' }[view];
 }
 
 function roleLabel(role: UserProfile['role']) {
