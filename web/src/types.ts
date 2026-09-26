@@ -97,3 +97,78 @@ export type SeedLot = {
   genetic_materials?: { code: string; material_category?: string | null } | null;
   parent?: { code: string } | null;
 };
+
+export type Experiment = {
+  id: string;
+  code: string;
+  name: string;
+  crop_id: string;
+  season?: string | null;
+  location_name?: string | null;
+  objective?: string | null;
+  design_type: string;
+  replications: number;
+  sowing_date?: string | null;
+  harvest_date?: string | null;
+  status: 'draft' | 'planned' | 'active' | 'completed' | 'cancelled';
+  responsible_name?: string | null;
+  notes?: string | null;
+  is_active?: boolean;
+  crops?: { code: string; common_name: string; scientific_name?: string | null } | null;
+};
+
+export type ExperimentBlock = {
+  id: string;
+  experiment_id: string;
+  block_number: number;
+  name?: string | null;
+  notes?: string | null;
+  is_active?: boolean;
+};
+
+export type ExperimentPlot = {
+  id: string;
+  experiment_id: string;
+  block_id?: string | null;
+  plot_number: number;
+  plot_code: string;
+  seed_lot_id?: string | null;
+  treatment_label: string;
+  rows_count?: number | null;
+  plot_length_m?: number | null;
+  row_spacing_m?: number | null;
+  planned_seed_count?: number | null;
+  status: 'planned' | 'sown' | 'active' | 'harvested' | 'discarded';
+  notes?: string | null;
+  is_active?: boolean;
+  block?: { block_number: number; name?: string | null } | null;
+  seed_lots?: {
+    code: string;
+    status?: string | null;
+    genetic_materials?: {
+      code: string;
+      cultivars?: { code: string; name: string } | null;
+    } | null;
+  } | null;
+};
+
+export type PlotAssessment = {
+  id: string;
+  plot_id: string;
+  descriptor_id: string;
+  assessed_at: string;
+  phenological_stage?: string | null;
+  value_text?: string | null;
+  value_number?: number | null;
+  min_value?: number | null;
+  max_value?: number | null;
+  notes?: string | null;
+  descriptor_definitions?: {
+    code: string;
+    name: string;
+    data_type: string;
+    unit?: string | null;
+    phenological_stage?: string | null;
+  } | null;
+};
+
