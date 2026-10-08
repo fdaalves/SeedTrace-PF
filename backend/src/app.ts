@@ -22,6 +22,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   const authenticate = options.authenticate ?? authenticateRequest;
 
   app.register(cors, {
+    methods: ['GET', 'HEAD', 'POST', 'PATCH'],
     origin: process.env.CORS_ORIGIN?.split(',').map((value) => value.trim()) ?? true
   });
 

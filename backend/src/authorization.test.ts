@@ -52,7 +52,7 @@ for (const role of ['admin', 'manager', 'technician'] as AppRole[]) {
     // 400 proves the request reached the domain handler and was rejected by validation,
     // rather than by the global authorization hook.
     assert.equal(response.statusCode, 400);
-    assert.deepEqual(response.json(), { error: 'code and common_name are required' });
+    assert.deepEqual(response.json(), { error: 'code is required' });
     await app.close();
   });
 }
