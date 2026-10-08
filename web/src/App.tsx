@@ -92,7 +92,7 @@ export default function App({ profile, onLogout }: AppProps) {
         {view === 'materials' && <MaterialsPanel cultivars={activeCultivarRows} />}
         {view === 'lots' && <LotsPanel />}
         {view === 'experiments' && <ExperimentsPanel crops={activeCrops} descriptors={activeDescriptors} />}
-        {view === 'maintenance' && canWrite && <CatalogMaintenancePanel />}
+        {view === 'maintenance' && canWrite && <CatalogMaintenancePanel onSaved={reload} />}
         {view === 'audit' && canViewAudit && <AuditLogPanel />}
         {view === 'users' && isAdmin && <UserManagementPanel currentUserId={profile.id} />}
       </main>
@@ -105,41 +105,59 @@ function Card({ label, value, note }: { label: string; value: number; note: stri
 }
 
 function Crops({ crops, onSaved }: { crops: Crop[]; onSaved: () => Promise<void> }) {
+  const [error, setError] = useState('');
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const form = new FormData(e.currentTarget);
-    await api.createCrop({ code: String(form.get('code')), common_name: String(form.get('common_name')), scientific_name: String(form.get('scientific_name') || '') });
-    e.currentTarget.reset(); await onSaved();
+    e.preventDefault(); const formElement = e.currentTarget; const form = new FormData(formElement);
+    try {
+      setError('');
+      await api.createCrop({ code: String(form.get('code')), common_name: String(form.get('common_name')), scientific_name: String(form.get('scientific_name') || '') });
+      formElement.reset(); await onSaved();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Falha ao salvar registro');
+    }
   }
-  return <section className="grid"><form className="panel form" onSubmit={submit}><h3>Nova cultura</h3><label>Código<input name="code" required placeholder="SOY" /></label><label>Nome comum<input name="common_name" required placeholder="Soja" /></label><label>Nome científico<input name="scientific_name" placeholder="Glycine max" /></label><button className="primary">Cadastrar cultura</button></form><List title="Culturas cadastradas" rows={crops.map(c => [c.code, c.common_name, c.is_active === false ? 'Inativa' : c.scientific_name || '—'])} /></section>;
+  return <section className="grid"><form className="panel form" onSubmit={submit}>{error && <p className="form-error" role="alert">{error}</p>}<h3>Nova cultura</h3><label>Código<input name="code" required placeholder="SOY" /></label><label>Nome comum<input name="common_name" required placeholder="Soja" /></label><label>Nome científico<input name="scientific_name" placeholder="Glycine max" /></label><button className="primary">Cadastrar cultura</button></form><List title="Culturas cadastradas" rows={crops.map(c => [c.code, c.common_name, c.is_active === false ? 'Inativa' : c.scientific_name || '—'])} /></section>;
 }
 
 function Cultivars({ crops, cultivars, onSaved }: { crops: Crop[]; cultivars: Cultivar[]; onSaved: () => Promise<void> }) {
+  const [error, setError] = useState('');
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const f = new FormData(e.currentTarget);
-    await api.createCultivar({ crop_id: String(f.get('crop_id')), code: String(f.get('code')), name: String(f.get('name')), breeder: String(f.get('breeder') || ''), cultivar_type: String(f.get('cultivar_type') || '') });
-    e.currentTarget.reset(); await onSaved();
+    e.preventDefault(); const formElement = e.currentTarget; const f = new FormData(formElement);
+    try {
+      setError('');
+      await api.createCultivar({ crop_id: String(f.get('crop_id')), code: String(f.get('code')), name: String(f.get('name')), breeder: String(f.get('breeder') || ''), cultivar_type: String(f.get('cultivar_type') || '') });
+      formElement.reset(); await onSaved();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Falha ao salvar registro');
+    }
   }
-  return <section className="grid"><form className="panel form" onSubmit={submit}><h3>Nova cultivar</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="SOY-PF-001" /></label><label>Nome<input name="name" required /></label><label>Obtentor<input name="breeder" /></label><label>Tipo<input name="cultivar_type" placeholder="Cultivar / linhagem" /></label><button className="primary">Cadastrar cultivar</button></form><List title="Cultivares cadastradas" rows={cultivars.map(c => [c.code, c.name, c.is_active === false ? 'Inativa' : c.crops?.common_name || '—'])} /></section>;
+  return <section className="grid"><form className="panel form" onSubmit={submit}>{error && <p className="form-error" role="alert">{error}</p>}<h3>Nova cultivar</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="SOY-PF-001" /></label><label>Nome<input name="name" required /></label><label>Obtentor<input name="breeder" /></label><label>Tipo<input name="cultivar_type" placeholder="Cultivar / linhagem" /></label><button className="primary">Cadastrar cultivar</button></form><List title="Cultivares cadastradas" rows={cultivars.map(c => [c.code, c.name, c.is_active === false ? 'Inativa' : c.crops?.common_name || '—'])} /></section>;
 }
 
 function Descriptors({ crops, cultivars, descriptors, onSaved }: { crops: Crop[]; cultivars: Cultivar[]; descriptors: Descriptor[]; onSaved: () => Promise<void> }) {
+  const [error, setError] = useState('');
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const f = new FormData(e.currentTarget);
-    const rawOptions = String(f.get('allowed_values') || '');
-    const allowedValues = rawOptions.split(',').map(value => value.trim()).filter(Boolean);
-    await api.createDescriptor({
-      crop_id: String(f.get('crop_id')),
-      code: String(f.get('code')),
-      name: String(f.get('name')),
-      data_type: String(f.get('data_type')),
-      unit: String(f.get('unit') || ''),
-      phenological_stage: String(f.get('phenological_stage') || ''),
-      criticality: String(f.get('criticality') || ''),
-      allowed_values: allowedValues.length ? allowedValues : null
-    });
-    e.currentTarget.reset(); await onSaved();
+    e.preventDefault(); const formElement = e.currentTarget; const f = new FormData(formElement);
+    try {
+      setError('');
+      const rawOptions = String(f.get('allowed_values') || '');
+      const allowedValues = rawOptions.split(',').map(value => value.trim()).filter(Boolean);
+      await api.createDescriptor({
+        crop_id: String(f.get('crop_id')),
+        code: String(f.get('code')),
+        name: String(f.get('name')),
+        data_type: String(f.get('data_type')),
+        unit: String(f.get('unit') || ''),
+        phenological_stage: String(f.get('phenological_stage') || ''),
+        criticality: String(f.get('criticality') || ''),
+        allowed_values: allowedValues.length ? allowedValues : null
+      });
+      formElement.reset(); await onSaved();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Falha ao salvar registro');
+    }
   }
-  return <section><div className="grid"><form className="panel form" onSubmit={submit}><h3>Novo descritor</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="flower_color" /></label><label>Característica<input name="name" required placeholder="Cor da flor" /></label><label>Tipo<select name="data_type" required><option value="option">Lista controlada</option><option value="text">Texto</option><option value="decimal">Número</option><option value="range">Faixa</option></select></label><label>Opções da lista<input name="allowed_values" placeholder="Branca, Roxa" /></label><label>Unidade<input name="unit" placeholder="cm, dias, %, etc." /></label><label>Estágio fenológico<input name="phenological_stage" placeholder="R1-R2" /></label><label>Criticidade<select name="criticality"><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option><option value="low">Baixa</option></select></label><button className="primary">Cadastrar descritor</button></form><List title="Ficha de descritores" rows={descriptors.map(d => [d.name, d.phenological_stage || '—', d.is_active === false ? 'Inativo' : Array.isArray(d.allowed_values) ? d.allowed_values.join(' / ') : d.criticality || '—'])} /></div><VarietalValuesPanel cultivars={cultivars} descriptors={descriptors.filter(d => d.is_active !== false)} /></section>;
+  return <section><div className="grid"><form className="panel form" onSubmit={submit}>{error && <p className="form-error" role="alert">{error}</p>}<h3>Novo descritor</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="flower_color" /></label><label>Característica<input name="name" required placeholder="Cor da flor" /></label><label>Tipo<select name="data_type" required><option value="option">Lista controlada</option><option value="text">Texto</option><option value="decimal">Número</option><option value="range">Faixa</option></select></label><label>Opções da lista<input name="allowed_values" placeholder="Branca, Roxa" /></label><label>Unidade<input name="unit" placeholder="cm, dias, %, etc." /></label><label>Estágio fenológico<input name="phenological_stage" placeholder="R1-R2" /></label><label>Criticidade<select name="criticality"><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option><option value="low">Baixa</option></select></label><button className="primary">Cadastrar descritor</button></form><List title="Ficha de descritores" rows={descriptors.map(d => [d.name, d.phenological_stage || '—', d.is_active === false ? 'Inativo' : Array.isArray(d.allowed_values) ? d.allowed_values.join(' / ') : d.criticality || '—'])} /></div><VarietalValuesPanel cultivars={cultivars} descriptors={descriptors.filter(d => d.is_active !== false)} /></section>;
 }
 
 function List({ title, rows }: { title: string; rows: string[][] }) {

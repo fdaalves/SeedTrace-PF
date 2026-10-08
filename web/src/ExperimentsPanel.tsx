@@ -86,10 +86,10 @@ export function ExperimentsPanel({ crops, descriptors }: Props) {
   useEffect(() => { void loadAssessments(selectedPlotId); }, [selectedPlotId]);
 
   async function createExperiment(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    e.preventDefault(); const formElement = e.currentTarget;
     try {
       setError(''); setMessage('');
-      const f = new FormData(e.currentTarget);
+      const f = new FormData(formElement);
       const created = await api.createExperiment({
         code: String(f.get('code')),
         name: String(f.get('name')),
@@ -102,7 +102,7 @@ export function ExperimentsPanel({ crops, descriptors }: Props) {
         responsible_name: String(f.get('responsible_name') || ''),
         status: 'planned'
       });
-      e.currentTarget.reset();
+      formElement.reset();
       setMessage('Experimento criado.');
       await loadBase();
       setSelectedExperimentId(created.id);
@@ -112,17 +112,17 @@ export function ExperimentsPanel({ crops, descriptors }: Props) {
   }
 
   async function createBlock(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    e.preventDefault(); const formElement = e.currentTarget;
     if (!selectedExperimentId) return;
     try {
       setError(''); setMessage('');
-      const f = new FormData(e.currentTarget);
+      const f = new FormData(formElement);
       await api.createExperimentBlock(selectedExperimentId, {
         block_number: Number(f.get('block_number')),
         name: String(f.get('name') || ''),
         notes: String(f.get('notes') || '')
       });
-      e.currentTarget.reset();
+      formElement.reset();
       setMessage('Bloco adicionado.');
       await loadExperiment(selectedExperimentId);
     } catch (e) {
@@ -131,11 +131,11 @@ export function ExperimentsPanel({ crops, descriptors }: Props) {
   }
 
   async function createPlot(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    e.preventDefault(); const formElement = e.currentTarget;
     if (!selectedExperimentId) return;
     try {
       setError(''); setMessage('');
-      const f = new FormData(e.currentTarget);
+      const f = new FormData(formElement);
       const numeric = (name: string) => {
         const raw = String(f.get(name) || '');
         return raw ? Number(raw) : undefined;
@@ -153,7 +153,7 @@ export function ExperimentsPanel({ crops, descriptors }: Props) {
         status: 'planned',
         notes: String(f.get('notes') || '')
       });
-      e.currentTarget.reset();
+      formElement.reset();
       setMessage('Parcela adicionada.');
       await loadExperiment(selectedExperimentId);
     } catch (e) {
@@ -162,11 +162,11 @@ export function ExperimentsPanel({ crops, descriptors }: Props) {
   }
 
   async function createAssessment(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    e.preventDefault(); const formElement = e.currentTarget;
     if (!selectedPlotId || !selectedDescriptor) return;
     try {
       setError(''); setMessage('');
-      const f = new FormData(e.currentTarget);
+      const f = new FormData(formElement);
       const payload: Parameters<typeof api.createPlotAssessment>[1] = {
         descriptor_id: selectedDescriptor.id,
         assessed_at: String(f.get('assessed_at') || '') || undefined,
@@ -184,7 +184,7 @@ export function ExperimentsPanel({ crops, descriptors }: Props) {
       }
 
       await api.createPlotAssessment(selectedPlotId, payload);
-      e.currentTarget.reset();
+      formElement.reset();
       setMessage('Avaliação registrada.');
       await loadAssessments(selectedPlotId);
     } catch (e) {
