@@ -11,7 +11,11 @@ const entityOptions = [
   ['cultivar_descriptor_values', 'Valores varietais'],
   ['genetic_materials', 'Materiais genéticos'],
   ['seed_lots', 'Lotes'],
-  ['user_profiles', 'Usuários']
+  ['user_profiles', 'Usuários'],
+  ['experiments', 'Experimentos'],
+  ['experiment_blocks', 'Blocos'],
+  ['experiment_plots', 'Parcelas'],
+  ['plot_assessments', 'Avaliações']
 ] as const;
 
 const entityLabels: Record<string, string> = Object.fromEntries(entityOptions);

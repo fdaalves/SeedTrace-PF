@@ -42,8 +42,8 @@ export function UserManagementPanel({ currentUserId }: { currentUserId: string }
       });
       changeUser(user.id, updated);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Falha ao atualizar usuário');
       await load();
+      setError(e instanceof Error ? e.message : 'Falha ao atualizar usuário');
     } finally {
       setSavingId('');
     }

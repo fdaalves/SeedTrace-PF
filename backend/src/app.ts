@@ -8,6 +8,7 @@ import { materialRoutes } from './routes/materials.js';
 import { lotRoutes } from './routes/lots.js';
 import { varietalValueRoutes } from './routes/varietalValues.js';
 import { accountRoutes } from './routes/account.js';
+import { experimentRoutes } from './routes/experiments.js';
 
 type Authenticator = (request: FastifyRequest, reply: FastifyReply) => Promise<unknown> | unknown;
 
@@ -21,6 +22,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   const authenticate = options.authenticate ?? authenticateRequest;
 
   app.register(cors, {
+    methods: ['GET', 'HEAD', 'POST', 'PATCH'],
     origin: process.env.CORS_ORIGIN?.split(',').map((value) => value.trim()) ?? true
   });
 
@@ -49,6 +51,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   app.register(varietalValueRoutes, { prefix: '/api/varietal-values' });
   app.register(materialRoutes, { prefix: '/api/materials' });
   app.register(lotRoutes, { prefix: '/api/lots' });
+  app.register(experimentRoutes, { prefix: '/api/experiments' });
 
   return app;
 }

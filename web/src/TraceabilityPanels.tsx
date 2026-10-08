@@ -15,9 +15,9 @@ export function MaterialsPanel({ cultivars }: { cultivars: Cultivar[] }) {
   useEffect(() => { void load(); }, []);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    e.preventDefault(); const formElement = e.currentTarget;
     try {
-      const form = new FormData(e.currentTarget);
+      const form = new FormData(formElement);
       await api.createMaterial({
         code: String(form.get('code')),
         cultivar_id: String(form.get('cultivar_id') || '') || null,
@@ -27,7 +27,7 @@ export function MaterialsPanel({ cultivars }: { cultivars: Cultivar[] }) {
         responsible_name: String(form.get('responsible_name') || ''),
         notes: String(form.get('notes') || '')
       });
-      e.currentTarget.reset();
+      formElement.reset();
       await load();
     } catch (e) { setError(e instanceof Error ? e.message : 'Erro ao cadastrar material'); }
   }
@@ -65,9 +65,9 @@ export function LotsPanel() {
   useEffect(() => { void load(); }, []);
 
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    e.preventDefault(); const formElement = e.currentTarget;
     try {
-      const form = new FormData(e.currentTarget);
+      const form = new FormData(formElement);
       const quantity = String(form.get('quantity') || '');
       await api.createLot({
         code: String(form.get('code')),
@@ -78,7 +78,7 @@ export function LotsPanel() {
         unit: String(form.get('unit') || ''),
         status: String(form.get('status') || 'active')
       });
-      e.currentTarget.reset();
+      formElement.reset();
       await load();
     } catch (e) { setError(e instanceof Error ? e.message : 'Erro ao cadastrar lote'); }
   }

@@ -1,6 +1,6 @@
 # SeedTrace PF Backend
 
-Backend inicial da Build 001, responsável pelo cadastro mestre e pela rastreabilidade básica de materiais.
+Backend da Build 002, responsável pelos cadastros, rastreabilidade e experimentos. Veja [execução local no Windows](../docs/WINDOWS_LOCAL.md).
 
 ## Stack
 
@@ -41,4 +41,4 @@ A chave `SUPABASE_SERVICE_ROLE_KEY` é exclusiva do backend e nunca deve ser env
 
 ## Estado atual
 
-Esta API é um esqueleto funcional da Build 001. Autenticação, permissões, validação avançada, testes automatizados e trilha de auditoria ainda serão adicionados.
+A API inclui autenticação, autorização por papel, validação de domínio, experimentos, blocos, parcelas, avaliações e auditoria. O aceite funcional da Build 002 deve ser concluído antes do merge.

@@ -6,8 +6,9 @@ import { LotsPanel, MaterialsPanel } from './TraceabilityPanels';
 import { UserManagementPanel } from './UserManagementPanel';
 import { AuditLogPanel } from './AuditLogPanel';
 import { CatalogMaintenancePanel } from './CatalogMaintenancePanel';
+import { ExperimentsPanel } from './ExperimentsPanel';
 
-type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots' | 'maintenance' | 'users' | 'audit';
+type View = 'dashboard' | 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots' | 'experiments' | 'maintenance' | 'users' | 'audit';
 
 type AppProps = {
   profile: UserProfile;
@@ -54,11 +55,12 @@ export default function App({ profile, onLogout }: AppProps) {
           <button className={view === 'descriptors' ? 'active' : ''} onClick={() => setView('descriptors')}>Ficha varietal</button>
           <button className={view === 'materials' ? 'active' : ''} onClick={() => setView('materials')}>Materiais genéticos</button>
           <button className={view === 'lots' ? 'active' : ''} onClick={() => setView('lots')}>Lotes</button>
+          <button className={view === 'experiments' ? 'active' : ''} onClick={() => setView('experiments')}>Experimentos</button>
           {canWrite && <button className={view === 'maintenance' ? 'active' : ''} onClick={() => setView('maintenance')}>Manutenção</button>}
           {canViewAudit && <button className={view === 'audit' ? 'active' : ''} onClick={() => setView('audit')}>Auditoria</button>}
           {isAdmin && <button className={view === 'users' ? 'active' : ''} onClick={() => setView('users')}>Usuários</button>}
         </nav>
-        <div className="sidebar-foot">Build 001 · 0.1.0-alpha<br />{profile.email}</div>
+        <div className="sidebar-foot">Build 002 · 0.2.0-alpha<br />{profile.email}</div>
       </aside>
 
       <main className={`content ${canWrite ? '' : 'readonly'}`}>
@@ -74,13 +76,13 @@ export default function App({ profile, onLogout }: AppProps) {
 
         {view === 'dashboard' && (
           <section>
-            <div className="hero"><div><p className="eyebrow">BUILD 001</p><h2>Identidade varietal antes da escala.</h2><p>Cadastre cultura, cultivar, padrão varietal, material genético e lote. Essa cadeia será a referência para inspeções, off-types e rastreabilidade nas próximas builds.</p></div><div className="hero-tag">PF</div></div>
+            <div className="hero"><div><p className="eyebrow">BUILD 002</p><h2>Do material genético à parcela experimental.</h2><p>Cadastre a identidade varietal e a genealogia dos lotes, monte experimentos em blocos e parcelas e registre avaliações de campo mantendo a rastreabilidade da origem.</p></div><div className="hero-tag">PF</div></div>
             <div className="stats">
               <Card label="Culturas" value={activeCrops.length} note="cadastros ativos" />
               <Card label="Cultivares" value={activeCultivarRows.length} note="identidades varietais ativas" />
               <Card label="Descritores" value={activeDescriptors.length} note="características ativas" />
             </div>
-            <div className="panel"><h3>Fluxo do núcleo</h3><div className="flow"><span>Cultura</span><b>→</b><span>Cultivar</span><b>→</b><span>Padrão varietal</span><b>→</b><span>Material</span><b>→</b><span>Lote</span></div></div>
+            <div className="panel"><h3>Fluxo do núcleo</h3><div className="flow"><span>Cultura</span><b>→</b><span>Cultivar</span><b>→</b><span>Material</span><b>→</b><span>Lote</span><b>→</b><span>Experimento</span><b>→</b><span>Parcela</span><b>→</b><span>Avaliação</span></div></div>
           </section>
         )}
 
@@ -89,7 +91,8 @@ export default function App({ profile, onLogout }: AppProps) {
         {view === 'descriptors' && <Descriptors crops={activeCrops} cultivars={activeCultivarRows} descriptors={descriptors} onSaved={reload} />}
         {view === 'materials' && <MaterialsPanel cultivars={activeCultivarRows} />}
         {view === 'lots' && <LotsPanel />}
-        {view === 'maintenance' && canWrite && <CatalogMaintenancePanel />}
+        {view === 'experiments' && <ExperimentsPanel crops={activeCrops} descriptors={activeDescriptors} />}
+        {view === 'maintenance' && canWrite && <CatalogMaintenancePanel onSaved={reload} />}
         {view === 'audit' && canViewAudit && <AuditLogPanel />}
         {view === 'users' && isAdmin && <UserManagementPanel currentUserId={profile.id} />}
       </main>
@@ -102,41 +105,59 @@ function Card({ label, value, note }: { label: string; value: number; note: stri
 }
 
 function Crops({ crops, onSaved }: { crops: Crop[]; onSaved: () => Promise<void> }) {
+  const [error, setError] = useState('');
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const form = new FormData(e.currentTarget);
-    await api.createCrop({ code: String(form.get('code')), common_name: String(form.get('common_name')), scientific_name: String(form.get('scientific_name') || '') });
-    e.currentTarget.reset(); await onSaved();
+    e.preventDefault(); const formElement = e.currentTarget; const form = new FormData(formElement);
+    try {
+      setError('');
+      await api.createCrop({ code: String(form.get('code')), common_name: String(form.get('common_name')), scientific_name: String(form.get('scientific_name') || '') });
+      formElement.reset(); await onSaved();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Falha ao salvar registro');
+    }
   }
-  return <section className="grid"><form className="panel form" onSubmit={submit}><h3>Nova cultura</h3><label>Código<input name="code" required placeholder="SOY" /></label><label>Nome comum<input name="common_name" required placeholder="Soja" /></label><label>Nome científico<input name="scientific_name" placeholder="Glycine max" /></label><button className="primary">Cadastrar cultura</button></form><List title="Culturas cadastradas" rows={crops.map(c => [c.code, c.common_name, c.is_active === false ? 'Inativa' : c.scientific_name || '—'])} /></section>;
+  return <section className="grid"><form className="panel form" onSubmit={submit}>{error && <p className="form-error" role="alert">{error}</p>}<h3>Nova cultura</h3><label>Código<input name="code" required placeholder="SOY" /></label><label>Nome comum<input name="common_name" required placeholder="Soja" /></label><label>Nome científico<input name="scientific_name" placeholder="Glycine max" /></label><button className="primary">Cadastrar cultura</button></form><List title="Culturas cadastradas" rows={crops.map(c => [c.code, c.common_name, c.is_active === false ? 'Inativa' : c.scientific_name || '—'])} /></section>;
 }
 
 function Cultivars({ crops, cultivars, onSaved }: { crops: Crop[]; cultivars: Cultivar[]; onSaved: () => Promise<void> }) {
+  const [error, setError] = useState('');
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const f = new FormData(e.currentTarget);
-    await api.createCultivar({ crop_id: String(f.get('crop_id')), code: String(f.get('code')), name: String(f.get('name')), breeder: String(f.get('breeder') || ''), cultivar_type: String(f.get('cultivar_type') || '') });
-    e.currentTarget.reset(); await onSaved();
+    e.preventDefault(); const formElement = e.currentTarget; const f = new FormData(formElement);
+    try {
+      setError('');
+      await api.createCultivar({ crop_id: String(f.get('crop_id')), code: String(f.get('code')), name: String(f.get('name')), breeder: String(f.get('breeder') || ''), cultivar_type: String(f.get('cultivar_type') || '') });
+      formElement.reset(); await onSaved();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Falha ao salvar registro');
+    }
   }
-  return <section className="grid"><form className="panel form" onSubmit={submit}><h3>Nova cultivar</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="SOY-PF-001" /></label><label>Nome<input name="name" required /></label><label>Obtentor<input name="breeder" /></label><label>Tipo<input name="cultivar_type" placeholder="Cultivar / linhagem" /></label><button className="primary">Cadastrar cultivar</button></form><List title="Cultivares cadastradas" rows={cultivars.map(c => [c.code, c.name, c.is_active === false ? 'Inativa' : c.crops?.common_name || '—'])} /></section>;
+  return <section className="grid"><form className="panel form" onSubmit={submit}>{error && <p className="form-error" role="alert">{error}</p>}<h3>Nova cultivar</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="SOY-PF-001" /></label><label>Nome<input name="name" required /></label><label>Obtentor<input name="breeder" /></label><label>Tipo<input name="cultivar_type" placeholder="Cultivar / linhagem" /></label><button className="primary">Cadastrar cultivar</button></form><List title="Cultivares cadastradas" rows={cultivars.map(c => [c.code, c.name, c.is_active === false ? 'Inativa' : c.crops?.common_name || '—'])} /></section>;
 }
 
 function Descriptors({ crops, cultivars, descriptors, onSaved }: { crops: Crop[]; cultivars: Cultivar[]; descriptors: Descriptor[]; onSaved: () => Promise<void> }) {
+  const [error, setError] = useState('');
   async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault(); const f = new FormData(e.currentTarget);
-    const rawOptions = String(f.get('allowed_values') || '');
-    const allowedValues = rawOptions.split(',').map(value => value.trim()).filter(Boolean);
-    await api.createDescriptor({
-      crop_id: String(f.get('crop_id')),
-      code: String(f.get('code')),
-      name: String(f.get('name')),
-      data_type: String(f.get('data_type')),
-      unit: String(f.get('unit') || ''),
-      phenological_stage: String(f.get('phenological_stage') || ''),
-      criticality: String(f.get('criticality') || ''),
-      allowed_values: allowedValues.length ? allowedValues : null
-    });
-    e.currentTarget.reset(); await onSaved();
+    e.preventDefault(); const formElement = e.currentTarget; const f = new FormData(formElement);
+    try {
+      setError('');
+      const rawOptions = String(f.get('allowed_values') || '');
+      const allowedValues = rawOptions.split(',').map(value => value.trim()).filter(Boolean);
+      await api.createDescriptor({
+        crop_id: String(f.get('crop_id')),
+        code: String(f.get('code')),
+        name: String(f.get('name')),
+        data_type: String(f.get('data_type')),
+        unit: String(f.get('unit') || ''),
+        phenological_stage: String(f.get('phenological_stage') || ''),
+        criticality: String(f.get('criticality') || ''),
+        allowed_values: allowedValues.length ? allowedValues : null
+      });
+      formElement.reset(); await onSaved();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Falha ao salvar registro');
+    }
   }
-  return <section><div className="grid"><form className="panel form" onSubmit={submit}><h3>Novo descritor</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="flower_color" /></label><label>Característica<input name="name" required placeholder="Cor da flor" /></label><label>Tipo<select name="data_type" required><option value="option">Lista controlada</option><option value="text">Texto</option><option value="decimal">Número</option><option value="range">Faixa</option></select></label><label>Opções da lista<input name="allowed_values" placeholder="Branca, Roxa" /></label><label>Unidade<input name="unit" placeholder="cm, dias, %, etc." /></label><label>Estágio fenológico<input name="phenological_stage" placeholder="R1-R2" /></label><label>Criticidade<select name="criticality"><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option><option value="low">Baixa</option></select></label><button className="primary">Cadastrar descritor</button></form><List title="Ficha de descritores" rows={descriptors.map(d => [d.name, d.phenological_stage || '—', d.is_active === false ? 'Inativo' : Array.isArray(d.allowed_values) ? d.allowed_values.join(' / ') : d.criticality || '—'])} /></div><VarietalValuesPanel cultivars={cultivars} descriptors={descriptors.filter(d => d.is_active !== false)} /></section>;
+  return <section><div className="grid"><form className="panel form" onSubmit={submit}>{error && <p className="form-error" role="alert">{error}</p>}<h3>Novo descritor</h3><label>Cultura<select name="crop_id" required><option value="">Selecione</option>{crops.map(c => <option key={c.id} value={c.id}>{c.common_name}</option>)}</select></label><label>Código<input name="code" required placeholder="flower_color" /></label><label>Característica<input name="name" required placeholder="Cor da flor" /></label><label>Tipo<select name="data_type" required><option value="option">Lista controlada</option><option value="text">Texto</option><option value="decimal">Número</option><option value="range">Faixa</option></select></label><label>Opções da lista<input name="allowed_values" placeholder="Branca, Roxa" /></label><label>Unidade<input name="unit" placeholder="cm, dias, %, etc." /></label><label>Estágio fenológico<input name="phenological_stage" placeholder="R1-R2" /></label><label>Criticidade<select name="criticality"><option value="medium">Média</option><option value="high">Alta</option><option value="critical">Crítica</option><option value="low">Baixa</option></select></label><button className="primary">Cadastrar descritor</button></form><List title="Ficha de descritores" rows={descriptors.map(d => [d.name, d.phenological_stage || '—', d.is_active === false ? 'Inativo' : Array.isArray(d.allowed_values) ? d.allowed_values.join(' / ') : d.criticality || '—'])} /></div><VarietalValuesPanel cultivars={cultivars} descriptors={descriptors.filter(d => d.is_active !== false)} /></section>;
 }
 
 function List({ title, rows }: { title: string; rows: string[][] }) {
@@ -144,7 +165,7 @@ function List({ title, rows }: { title: string; rows: string[][] }) {
 }
 
 function title(view: View) {
-  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia', maintenance: 'Manutenção de cadastros', users: 'Usuários e permissões', audit: 'Trilha de auditoria' }[view];
+  return { dashboard: 'Visão geral', crops: 'Culturas', cultivars: 'Cultivares', descriptors: 'Ficha de identidade varietal', materials: 'Materiais genéticos', lots: 'Lotes e genealogia', experiments: 'Experimentos e parcelas', maintenance: 'Manutenção de cadastros', users: 'Usuários e permissões', audit: 'Trilha de auditoria' }[view];
 }
 
 function roleLabel(role: UserProfile['role']) {

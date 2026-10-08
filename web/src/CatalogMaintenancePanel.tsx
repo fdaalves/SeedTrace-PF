@@ -5,7 +5,7 @@ import './maintenance.css';
 
 type Section = 'crops' | 'cultivars' | 'descriptors' | 'materials' | 'lots';
 
-export function CatalogMaintenancePanel() {
+export function CatalogMaintenancePanel({ onSaved }: { onSaved: () => Promise<void> }) {
   const [section, setSection] = useState<Section>('crops');
   const [crops, setCrops] = useState<Crop[]>([]);
   const [cultivars, setCultivars] = useState<Cultivar[]>([]);
@@ -40,7 +40,9 @@ export function CatalogMaintenancePanel() {
       await action();
       setMessage('Alteração salva e registrada na trilha de auditoria.');
       await load();
+      await onSaved();
     } catch (e) {
+      await load();
       setError(e instanceof Error ? e.message : 'Falha ao salvar alteração');
     } finally {
       setSaving('');
