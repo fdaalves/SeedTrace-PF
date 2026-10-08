@@ -260,7 +260,7 @@ export async function experimentRoutes(app: FastifyInstance) {
         .select()
         .single();
 
-      if (error) return reply.code(error.code === '23505' ? 409 : 400).send({ error: error.message });
+      if (error) return reply.code(error.code === '23505' ? 409 : 400).send({ error: error.code === '23505' ? 'Block number already exists in this experiment' : error.message });
       return reply.code(201).send(data);
     } catch (error) {
       return reply.code(400).send({ error: validationMessage(error) });
